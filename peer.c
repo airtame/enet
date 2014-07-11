@@ -592,8 +592,7 @@ enet_peer_reliable_queues_empty (ENetPeer * peer)
 {
     if ((peer -> state == ENET_PEER_STATE_CONNECTED))
     {
-        return enet_list_empty(& peer -> outgoingReliableCommands) &&
-               enet_list_empty(& peer -> sentReliableCommands);
+        return peer->reliableDataInTransit == 0;
     }
     return 1;
 }
