@@ -581,6 +581,23 @@ enet_peer_disconnect_later (ENetPeer * peer, enet_uint32 data)
       enet_peer_disconnect (peer, data);
 }
 
+/** Check whether there are reliable packets that are in the process of sending
+ *  (whether the sending queues are empty or not).
+ *  @param peer the peer to check the queues on
+ *  @returns 0 if there are still packets in the process of sending and 1
+ *  otherwise.
+ */
+int
+enet_peer_reliable_queues_empty (ENetPeer * peer)
+{
+    if ((peer -> state == ENET_PEER_STATE_CONNECTED))
+    {
+        return enet_list_empty(& peer -> outgoingReliableCommands) &&
+               enet_list_empty(& peer -> sentReliableCommands);
+    }
+    return 1;
+}
+
 ENetAcknowledgement *
 enet_peer_queue_acknowledgement (ENetPeer * peer, const ENetProtocol * command, enet_uint16 sentTime)
 {
