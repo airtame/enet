@@ -270,7 +270,9 @@ typedef struct _ENetPeer
    enet_uint32   incomingBandwidthThrottleEpoch;
    enet_uint32   outgoingBandwidthThrottleEpoch;
    enet_uint32   incomingDataTotal;
+   enet_uint32   totalDataReceived;
    enet_uint32   outgoingDataTotal;
+   enet_uint32   totalDataSent;
    enet_uint32   lastSendTime;
    enet_uint32   lastReceiveTime;
    enet_uint32   nextTimeout;

@@ -383,7 +383,9 @@ enet_peer_reset (ENetPeer * peer)
     peer -> incomingBandwidthThrottleEpoch = 0;
     peer -> outgoingBandwidthThrottleEpoch = 0;
     peer -> incomingDataTotal = 0;
+    peer -> totalDataReceived = 0;
     peer -> outgoingDataTotal = 0;
+    peer -> totalDataSent = 0;
     peer -> lastSendTime = 0;
     peer -> lastReceiveTime = 0;
     peer -> nextTimeout = 0;
