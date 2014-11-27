@@ -17,6 +17,7 @@
     @param channelLimit the maximum number of channels allowed; if 0, then this is equivalent to ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT
     @param incomingBandwidth downstream bandwidth of the host in bytes/second; if 0, ENet will assume unlimited bandwidth.
     @param outgoingBandwidth upstream bandwidth of the host in bytes/second; if 0, ENet will assume unlimited bandwidth.
+    @param tos the value to set in the TOS header of the IP packet
 
     @returns the host on success and NULL on failure
 
@@ -26,7 +27,7 @@
     at any given time.
 */
 ENetHost *
-enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth)
+enet_host_create_tos (const ENetAddress * address, size_t peerCount, size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth, enet_uint32 tos)
 {
     ENetHost * host;
     ENetPeer * currentPeer;
@@ -64,6 +65,10 @@ enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelL
     enet_socket_set_option (host -> socket, ENET_SOCKOPT_BROADCAST, 1);
     enet_socket_set_option (host -> socket, ENET_SOCKOPT_RCVBUF, ENET_HOST_RECEIVE_BUFFER_SIZE);
     enet_socket_set_option (host -> socket, ENET_SOCKOPT_SNDBUF, ENET_HOST_SEND_BUFFER_SIZE);
+
+    if (tos) {
+        enet_socket_set_option (host -> socket, ENET_SOCKOPT_TOS, tos);
+    }
 
     if (address != NULL && enet_socket_get_address (host -> socket, & host -> address) < 0)   
       host -> address = * address;
@@ -132,6 +137,28 @@ enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelL
     }
 
     return host;
+}
+
+
+/** Creates a host for communicating to peers.
+
+    @param address   the address at which other peers may connect to this host.  If NULL, then no peers may connect to the host.
+    @param peerCount the maximum number of peers that should be allocated for the host.
+    @param channelLimit the maximum number of channels allowed; if 0, then this is equivalent to ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT
+    @param incomingBandwidth downstream bandwidth of the host in bytes/second; if 0, ENet will assume unlimited bandwidth.
+    @param outgoingBandwidth upstream bandwidth of the host in bytes/second; if 0, ENet will assume unlimited bandwidth.
+
+    @returns the host on success and NULL on failure
+
+    @remarks ENet will strategically drop packets on specific sides of a connection between hosts
+    to ensure the host's bandwidth is not overwhelmed.  The bandwidth parameters also determine
+    the window size of a connection which limits the amount of reliable packets that may be in transit
+    at any given time.
+*/
+ENetHost *
+enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth)
+{
+    return enet_host_create_tos(address, peerCount, channelLimit, incomingBandwidth, outgoingBandwidth, 0);
 }
 
 /** Destroys the host and all resources associated with it.
