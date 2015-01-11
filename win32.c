@@ -212,7 +212,8 @@ enet_socket_set_option (ENetSocket socket, ENetSocketOption option, int value)
             break;
 
         case ENET_SOCKOPT_TOS:
-            result = setsockopt (socket, IPPROTO_IP, IP_TOS, (char *) & value, sizeof(int));
+            //result = setsockopt (socket, IPPROTO_IP, IP_TOS, (char *) & value, sizeof(int));
+            result = 0; // Disabled TOS for windows. Need support using QOS2.h
             break;
         default:
             break;
