@@ -1680,7 +1680,7 @@ enet_protocol_send_outgoing_commands (ENetHost * host, ENetEvent * event, int ch
 #endif
           
            currentPeer -> packetLossVariance -= currentPeer -> packetLossVariance / 4;
-
+           currentPeer -> packetLossInstant =  currentPeer -> packetsLost * 100 / currentPeer -> packetsSent;
            if (packetLoss >= currentPeer -> packetLoss)
            {
               currentPeer -> packetLoss += (packetLoss - currentPeer -> packetLoss) / 8;

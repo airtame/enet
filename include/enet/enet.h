@@ -283,6 +283,7 @@ typedef struct _ENetPeer
    enet_uint32   packetsLost;
    enet_uint32   packetLoss;          /**< mean packet loss of reliable packets as a ratio with respect to the constant ENET_PEER_PACKET_LOSS_SCALE */
    enet_uint32   packetLossVariance;
+   enet_uint32   packetLossInstant; /**< packet loss of reliable packets calculated in a ENET_PEER_PACKET_LOSS_INTERVAL time interval */
    enet_uint32   packetThrottle;
    enet_uint32   packetThrottleLimit;
    enet_uint32   packetThrottleCounter;
