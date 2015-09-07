@@ -1440,6 +1440,7 @@ enet_protocol_check_timeouts (ENetHost * host, ENetPeer * peer, ENetEvent * even
          peer -> reliableDataInTransit -= outgoingCommand -> fragmentLength;
           
        ++ peer -> packetsLost;
+       ++ peer -> totalPacketsLost;
 
        outgoingCommand -> roundTripTimeout *= 2;
 
@@ -1570,6 +1571,7 @@ enet_protocol_send_reliable_outgoing_commands (ENetHost * host, ENetPeer * peer)
        }
 
        ++ peer -> packetsSent;
+       ++ peer -> totalPacketsSent;
         
        ++ command;
        ++ buffer;

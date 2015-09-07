@@ -277,8 +277,10 @@ typedef struct _ENetPeer
    enet_uint32   earliestTimeout;
    enet_uint32   packetLossEpoch;
    enet_uint32   packetsSent;
+   enet_uint32   totalPacketsSent; /**< total number of packets sent during a session */
    enet_uint32   packetsLost;
    enet_uint32   packetLoss;          /**< mean packet loss of reliable packets as a ratio with respect to the constant ENET_PEER_PACKET_LOSS_SCALE */
+   enet_uint32   totalPacketsLost;     /**< total number of packets lost during a session */
    enet_uint32   packetLossVariance;
    enet_uint32   packetThrottle;
    enet_uint32   packetThrottleLimit;
