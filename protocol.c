@@ -1466,6 +1466,7 @@ enet_protocol_check_timeouts (ENetHost * host, ENetPeer * peer, ENetEvent * even
          peer -> reliableDataInTransit -= outgoingCommand -> fragmentLength;
           
        ++ peer -> packetsLost;
+       ++ peer -> totalPacketsLost;
 
        /* Replaced exponential backoff time with something more linear */
        /* Source: http://lists.cubik.org/pipermail/enet-discuss/2014-May/002308.html */
@@ -1600,6 +1601,7 @@ enet_protocol_send_reliable_outgoing_commands (ENetHost * host, ENetPeer * peer)
        }
 
        ++ peer -> packetsSent;
+       ++ peer -> totalPacketsSent;
         
        ++ command;
        ++ buffer;

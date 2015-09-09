@@ -392,7 +392,9 @@ enet_peer_reset (ENetPeer * peer)
     peer -> earliestTimeout = 0;
     peer -> packetLossEpoch = 0;
     peer -> packetsSent = 0;
+    peer -> totalPacketsSent = 0;
     peer -> packetsLost = 0;
+    peer -> totalPacketsLost = 0;
     peer -> packetLoss = 0;
     peer -> packetLossVariance = 0;
     peer -> packetThrottle = ENET_PEER_DEFAULT_PACKET_THROTTLE;
