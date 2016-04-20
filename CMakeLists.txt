@@ -71,7 +71,9 @@ add_library (${TARGET_NAME} SHARED ${SOURCES})
 
 if (WIN32)
     target_link_libraries (${TARGET_NAME} Ws2_32 winmm)
+    add_definitions (-DENET_DLL)
 endif()
+
 install (TARGETS ${TARGET_NAME}
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib
