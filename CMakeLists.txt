@@ -23,6 +23,11 @@ set (TARGET_NAME
     enet
 )
 
+
+if (WIN32)
+    add_definitions(-DENET_DLL=1)
+endif ()
+
 if(HAS_FCNTL)
     add_definitions(-DHAS_FCNTL=1)
 endif()
