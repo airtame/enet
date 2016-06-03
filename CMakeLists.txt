@@ -23,11 +23,6 @@ set (TARGET_NAME
     enet
 )
 
-
-if (WIN32)
-    add_definitions(-DENET_DLL=1)
-endif ()
-
 if(HAS_FCNTL)
     add_definitions(-DHAS_FCNTL=1)
 endif()
@@ -68,15 +63,26 @@ set (SOURCES
         packet.c
         peer.c
         protocol.c
-        unix.c
-        win32.c
     )
 
-add_library (${TARGET_NAME} SHARED ${SOURCES})
+if (WIN32)
+    add_definitions(-DENET_DLL=1)
+    set (SOURCES ${SOURCES} win32.c)
+else ()
+    set (SOURCES ${SOURCES} unix.c)
+endif ()
+
+add_library (${TARGET_NAME} STATIC ${SOURCES})
 
 if (WIN32)
     target_link_libraries (${TARGET_NAME} Ws2_32 winmm)
-endif()
+endif ()
+
+
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    set_target_properties (${TARGET_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
+endif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
 install (TARGETS ${TARGET_NAME}
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib
