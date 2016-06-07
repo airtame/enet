@@ -97,7 +97,7 @@ endif ()
 
 if (UNIX AND NOT APPLE)
     set_target_properties (${TARGET_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
-endif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+endif ()
 
 install (TARGETS ${TARGET_NAME}
          LIBRARY DESTINATION lib
