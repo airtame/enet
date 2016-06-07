@@ -4,7 +4,7 @@ project(enet)
 
 # The "configure" step.
 include(CheckFunctionExists)
-include(CheckStructHasMember)
+include(CheckCSourceCompiles)
 include(CheckTypeSize)
 check_function_exists("fcntl" HAS_FCNTL)
 check_function_exists("poll" HAS_POLL)
@@ -14,7 +14,23 @@ check_function_exists("gethostbyname_r" HAS_GETHOSTBYNAME_R)
 check_function_exists("gethostbyaddr_r" HAS_GETHOSTBYADDR_R)
 check_function_exists("inet_pton" HAS_INET_PTON)
 check_function_exists("inet_ntop" HAS_INET_NTOP)
-check_struct_has_member("struct msghdr" "msg_flags" "sys/types.h;sys/socket.h" HAS_MSGHDR_FLAGS)
+
+# Would like to use check_struct_has_memeber, but the clang static analyzer tries to compile
+# that and complains. So we want to include #ifndef __clang_analyzer__ in the generated
+# source.
+check_c_source_compiles(
+   "#ifndef __clang_analyzer__
+    #include <sys/types.h>
+    #include <sys/socket.h>
+
+    int main()
+    {
+        struct msghdr* tmp;
+        (void)tmp->msg_flags;
+        return 0;
+    }
+    #endif" HAS_MSGHDR_FLAGS)
+
 set(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h" "sys/socket.h")
 check_type_size("socklen_t" HAS_SOCKLEN_T BUILTIN_TYPES_ONLY)
 unset(CMAKE_EXTRA_INCLUDE_FILES)

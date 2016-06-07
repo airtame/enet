@@ -594,7 +594,7 @@ enet_peer_disconnect_later (ENetPeer * peer, enet_uint32 data)
 int
 enet_peer_reliable_queues_empty (ENetPeer * peer)
 {
-    if ((peer -> state == ENET_PEER_STATE_CONNECTED))
+    if (peer -> state == ENET_PEER_STATE_CONNECTED)
     {
         return peer->reliableDataInTransit == 0;
     }
