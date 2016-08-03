@@ -94,6 +94,9 @@ if (WIN32)
     target_link_libraries (${TARGET_NAME} Ws2_32 winmm)
 endif ()
 
+if (MSVC)
+    add_definitions("/D_WINSOCK_DEPRECATED_NO_WARNINGS")
+endif ()
 
 if (UNIX AND NOT APPLE)
     set_target_properties (${TARGET_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
