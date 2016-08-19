@@ -15,6 +15,8 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <assert.h>
+#include <stdbool.h>
 
 #define ENET_BUILDING_LIB 1
 #include "enet/enet.h"
@@ -372,6 +374,144 @@ enet_socket_destroy (ENetSocket socket)
       close (socket);
 }
 
+/* __native_client__ is defined to 1 when compilgin with NACL gcc compiler */
+#if __native_client__
+/*
+ * Because on Chromebook (__native_client__) recvmsg and sendmsg are not implemented they have to be
+ * replaced by sendto and recvfrom, which don't use an array of buffers, but a single buffer.
+ *
+ * Because enet_socket_send tries to send the data via an array of buffers, but sendto accepts a
+ * buffer, we need an intermediate buffer to gather all the data from the array of buffers. This is
+ * implemented using a pool of buffers (g_buffer_pool) that are statically allocated and reused.
+ * When a buffer is requested, then we search for the first unused buffer in the pool (when the
+ * buffer is used, it's corresponding index in the pool is set to 1) and use that one. While it is
+ * used, it has to be marked setting the corresponding g_buffer_idx to 1, and after usage, setting
+ * it back to 0 (free).
+ */
+#define ATOMIC_CAS(variable, old_value, new_val)                                                   \
+    __sync_bool_compare_and_swap((variable), (old_value), (new_val))
+#define NUM_BUFFERS (20)
+#define BUFFER_SIZE (32 * 1024)
+
+typedef struct {
+   enet_uint32 free;
+   enet_uint8 buffer[BUFFER_SIZE];
+} GlobalSendBuffer;
+
+static GlobalSendBuffer g_send_buffers[NUM_BUFFERS];
+
+int
+enet_socket_send (ENetSocket socket,
+                  const ENetAddress * address,
+                  const ENetBuffer * buffers,
+                  size_t bufferCount)
+{
+    struct sockaddr_in sin = {0};
+    socklen_t slen = sizeof(sin);
+
+    ssize_t sentLength = 0;
+    enet_uint8 *send_buff = NULL;
+    enet_uint32 buff_idx = 0;
+    enet_uint32 i, sendsize = 0;
+
+    /* find an empty global buffer to use */
+    int num_tries = 1;
+    while (1)
+    {
+        /* try to acquire a buffer and if success, then mark it as busy */
+        if (ATOMIC_CAS (& g_send_buffers[buff_idx].free, 0, 1))
+            break;
+
+        buff_idx = (buff_idx + 1) % NUM_BUFFERS;
+        /* if we tried all the buffers, but they are busy, then sleep for 1ms (or fail if compiling
+         * in debug mode). This can only happen if there are more than 20 instances of enet_host.
+         */
+        if (num_tries % NUM_BUFFERS == 0) {
+            usleep(1 * 1000);
+            assert(false);
+        }
+        num_tries++;
+    }
+
+    send_buff = g_send_buffers [buff_idx].buffer;
+    if (address != NULL)
+    {
+        sin.sin_family = AF_INET;
+        sin.sin_port = ENET_HOST_TO_NET_16 (address -> port);
+        sin.sin_addr.s_addr = address -> host;
+    }
+
+    for (i = 0; i < bufferCount; i++) {
+      memcpy(send_buff + sendsize, buffers[i].data, buffers[i].dataLength);
+      sendsize += buffers[i].dataLength;
+    }
+
+    sentLength = sendto (socket, send_buff, sendsize, MSG_NOSIGNAL, (struct sockaddr *)&sin, slen);
+
+    /* mark the buffer as free */
+    ATOMIC_CAS(& g_send_buffers[buff_idx].free, 1, 0);
+
+    if (sentLength == -1)
+    {
+       if (errno == EWOULDBLOCK)
+         return 0;
+
+       return -1;
+    }
+
+    return sentLength;
+}
+
+int
+enet_socket_receive (ENetSocket socket,
+                     ENetAddress * address,
+                     ENetBuffer * buffers,
+                     size_t bufferCount)
+{
+    struct sockaddr_in sin;
+    socklen_t slen;
+    size_t recvLength;
+    size_t i;
+
+    slen = sizeof (sin);
+    recvLength = 0;
+    for (i = 0; i < bufferCount; i++)
+    {
+        ssize_t rc =  recvfrom (socket, buffers[i].data, buffers[i].dataLength, MSG_NOSIGNAL,
+                           (struct sockaddr *) & sin, & slen);
+        if (rc == -1)
+        {
+            /* if this is the first call to recvfrom, then we cannot receive data.
+             * return accordingly
+             */
+            if (i == 0)
+            {
+                if (errno == EWOULDBLOCK)
+                    return 0;
+
+                return -1;
+            }
+
+            /* If we already received data in the previous recvfrom call, but the current call
+             * doesn't receive any data, probably the number of provided buffers is too big for the
+             * datagram size. The only thing we can do here is to return the amount of data we have
+             * received so far. Note: all calls to enet_socket_receive seem to pass 1 as the
+             * bufferCount.
+             */
+            return recvLength;
+        }
+        recvLength += rc;
+    }
+
+    if (address != NULL)
+    {
+        address -> host = (enet_uint32) sin.sin_addr.s_addr;
+        address -> port = ENET_NET_TO_HOST_16 (sin.sin_port);
+    }
+
+    return recvLength;
+}
+#else
 int
 enet_socket_send (ENetSocket socket,
                   const ENetAddress * address,
@@ -456,6 +596,7 @@ enet_socket_receive (ENetSocket socket,
 
     return recvLength;
 }
+#endif
 
 int
 enet_socketset_select (ENetSocket maxSocket, ENetSocketSet * readSet, ENetSocketSet * writeSet, enet_uint32 timeout)
