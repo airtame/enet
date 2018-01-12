@@ -79,6 +79,7 @@ set (SOURCES
         packet.c
         peer.c
         protocol.c
+        enet_time.c
     )
 
 if (WIN32)

@@ -485,14 +485,10 @@ ENET_API ENetVersion enet_linked_version (void);
 /** @defgroup private ENet private implementation functions */
 
 /**
-  Returns the wall-time in milliseconds.  Its initial value is unspecified
+  Returns monotonic time in milliseconds. Its initial value is unspecified
   unless otherwise set.
   */
 ENET_API enet_uint32 enet_time_get (void);
-/**
-  Sets the current wall-time in milliseconds.
-  */
-ENET_API void enet_time_set (enet_uint32);
 
 /** @defgroup socket ENet socket functions
     @{

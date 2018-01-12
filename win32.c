@@ -9,8 +9,6 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-static enet_uint32 timeBase = 0;
-
 int
 enet_initialize (void)
 {
@@ -45,18 +43,6 @@ enet_uint32
 enet_host_random_seed (void)
 {
     return (enet_uint32) timeGetTime ();
-}
-
-enet_uint32
-enet_time_get (void)
-{
-    return (enet_uint32) timeGetTime () - timeBase;
-}
-
-void
-enet_time_set (enet_uint32 newTimeBase)
-{
-    timeBase = (enet_uint32) timeGetTime () - newTimeBase;
 }
 
 int
