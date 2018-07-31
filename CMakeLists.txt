@@ -31,9 +31,22 @@ check_c_source_compiles(
     }
     #endif" HAS_MSGHDR_FLAGS)
 
-set(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h" "sys/socket.h")
-check_type_size("socklen_t" HAS_SOCKLEN_T BUILTIN_TYPES_ONLY)
-unset(CMAKE_EXTRA_INCLUDE_FILES)
+# check_type_size is a very clever test. It must work when cross-compiling, so it can't
+# just generate a binary that prints the size because it might not be possible to run the
+# generated binary. Instead, it compiles a C source that contains the size in a global
+# variable, as a string. That global string ends up in the binary and it can be extracted
+# by running `strings`, and the desired size can be grepped out.
+#
+# Unfortunately, even though this is very clever, it breaks down on pnacl, because the pnacl
+# toolchain does not generate binaries. It generates LLVM IR, and `strings` doesn't work on
+# it.
+if (PNACL)
+    set (HAS_SOCKLEN_T 1)
+else ()
+    set(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h" "sys/socket.h")
+    check_type_size("socklen_t" HAS_SOCKLEN_T BUILTIN_TYPES_ONLY)
+    unset(CMAKE_EXTRA_INCLUDE_FILES)
+endif ()
 
 set (TARGET_NAME
     enet
