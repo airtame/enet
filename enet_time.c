@@ -123,7 +123,12 @@ enet_uint32 enet_time_get()
     static uint64_t start_time_ns = 0;
 
     struct timespec ts;
-#if defined(CLOCK_MONOTONIC_RAW)
+
+    // When building for chromebook with the nacl toolchain for the ARM
+    // architecture, CLOCK_MONOTONIC_RAW returns random values from a
+    // small set of possibilities. This is not very useful as a measure of
+    // time. Luckily, CLOCK_MONOTONIC still works.
+#if defined(CLOCK_MONOTONIC_RAW) && !defined(NACL_ARM)
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
 #else
     clock_gettime(CLOCK_MONOTONIC, &ts);
